@@ -95,6 +95,28 @@ if ($method === 'PUT' && $action === 'modifier_etudiant') {
     }
     exit;
 }
+// ==========================================
+// POINT 9 : Rechercher un étudiant par nom ou prénom (GET)
+// ==========================================
+if ($method === 'GET' && $action === 'rechercher_etudiant') {
+    $q = isset($_GET['q']) ? trim($_GET['q']) : '';
+    
+    if ($q === '') {
+        echo json_encode([]); // Si la recherche est vide, on renvoie un tableau vide
+        exit;
+    }
+    
+    // On cherche dans le nom OU le prénom (avec LIKE pour une recherche partielle)
+    $stmt = $pdo->prepare("
+        SELECT * FROM etudiants 
+        WHERE nom LIKE ? OR prenom LIKE ?
+    ");
+    $searchTerm = '%' . $q . '%'; // Le % permet de chercher n'importe où dans le mot
+    $stmt->execute([$searchTerm, $searchTerm]);
+    
+    echo json_encode($stmt->fetchAll());
+    exit;
+}
 http_response_code(404);
 echo json_encode(["erreur" => "Action non reconnue"]);
 ?>
